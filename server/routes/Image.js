@@ -92,13 +92,9 @@ router.post("/pin/:id", async (req, res) => {
                         // Sign the IPFS hash returned here
                         const signer = new ethers.Wallet("0x" + process.env.SIGNER_PK);
                         let message = ethers.solidityPacked(["string"], [pinJsonResponse.data.IpfsHash]);
-                        console.log(`message before hash => ${message}`);
                         message = ethers.keccak256(ethers.getBytes(message));
-                        console.log(`message after hash => ${message}`);
                         const arrayify = ethers.getBytes(message);
-                        console.log(`as array => ${arrayify}`);
                         const signature = await signer.signMessage(arrayify);
-                        console.log(`signature => ${signature}`);
                         // Send back the hash + signature
                         res.json({
                             IpfsHash: pinJsonResponse.data.IpfsHash,
