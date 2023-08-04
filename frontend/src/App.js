@@ -1,8 +1,25 @@
 import { useState } from "react";
 import noImage from "./img/no-image.png";
 import './App.css';
+import { ethers, id } from "ethers";
 
 const API_ENDPOINT = "http://127.0.0.1:3001"; //process.env.API_ENDPOINT;
+
+const abi = [
+  "function mint(string memory _ipfsHash, bytes memory _signature)"
+];
+
+let provider;
+let signer;
+let contract;
+
+if (!window.ethereum) {
+  provider = ethers.getDefaultProvider();
+} else {
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+  contract = new ethers.Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", abi, signer);
+}
 
 function App() {
   const [prompt, setPrompt] = useState("");
@@ -15,23 +32,48 @@ function App() {
       negative_propmpt: negativePrompt
     }
 
-    const result = await fetch(`${API_ENDPOINT}/images/generate`, {
+    const requestOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
-    });
+    }
+    const result = await fetch(`${API_ENDPOINT}/images/generate`, requestOptions);
 
     if (result.status === 200) {
-      const { output, id } = await result.json();
-      setGenerated({ image: output[0], id });
+
+      const { output, id, status } = await result.json();
+      if (status == "success") {
+        setGenerated({ image: output[0], id });
+      }
+    } else {
+      console.error("couldn't get a response on /generate endpoint");
     }
   }
 
   const handleMint = async () => {
     // Pin the image
-    // send the tx
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        negative_propmpt: negativePrompt,
+      })
+    }
+    const result = await fetch(`${API_ENDPOINT}/images/pin/${generated.id}`, requestOptions);
+    if (result.status == 200) {
+      const { IpfsHash, signature } = await result.json();
+      console.log(`signature = ${signature}`);
+      // Send the tx
+      const receipt = await contract.mint(IpfsHash, signature);
+      console.log(`receipt => ${JSON.stringify(receipt)}`)
+    } else {
+
+    }
   }
 
   return (
