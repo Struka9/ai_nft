@@ -15,18 +15,41 @@ const DEFAULT_NUM_SAMPLES = 1;
 
 const router = Router();
 
-router.post("/pin/:id", async (req, res) => {
-    const { id } = req.params;
+router.post('/fetch/:imageId', async (req, res) => {
+    const { imageId } = req.params;
+    const requestBody = {
+        key: process.env.STABLE_DIFFUSE_KEY
+    };
+    try {
+        const fetchImageResponse = await axios.post(`${process.env.FETCH_IMG_ENDPOINT}${imageId}`, requestBody);
 
-    if (!id) {
-        return res.status(400).json({ error: "missing required param `id`" });
+        if (fetchImageResponse.status == 200) {
+            const { status, output, id, eta } = fetchImageResponse.data;
+
+            return res.json({
+                status, output, id, eta
+            });
+        }
+    } catch (e) {
+        console.error(e.message);
+        res.status(500).send();
+    }
+});
+
+router.post("/pin/:imageId", async (req, res) => {
+    const { imageId } = req.params;
+    const prompt = req.body.prompt || "";
+    const negativePrompt = req.body.negative_prompt || "";
+
+    if (!imageId) {
+        return res.status(400).json({ error: "missing required id in path" });
     }
 
     try {
         const requestBody = {
             key: process.env.STABLE_DIFFUSE_KEY
         };
-        const fetchImageResponse = await axios.post(`${process.env.FETCH_IMG_ENDPOINT}${id}`, requestBody);
+        const fetchImageResponse = await axios.post(`${process.env.FETCH_IMG_ENDPOINT}${imageId}`, requestBody);
 
         if (fetchImageResponse.status == 200) {
             const { status, output } = fetchImageResponse.data;
@@ -49,7 +72,7 @@ router.post("/pin/:id", async (req, res) => {
                 // Pin file to Pinata
                 const formData = new FormData();
                 const hash = crypto.createHash("sha256");
-                hash.update(id.toString());
+                hash.update(imageId.toString());
                 const hashDigest = hash.digest("hex");
                 formData.append("file", readStream, { filepath: `${hashDigest}.png` });
 
@@ -68,15 +91,13 @@ router.post("/pin/:id", async (req, res) => {
                 });
 
                 if (pinImageResponse.status == 200) {
-                    console.log(`pin image = ${pinImageResponse.data.IpfsHash}`);
-
                     const nftBody = {
                         name: "CoolNFT",
                         description: "A collection of NFTs created using AI.",
                         image: `ipfs://${pinImageResponse.data.IpfsHash}`,
                         properties: {
-                            prompt: "",
-                            negative_prompt: ""
+                            prompt,
+                            negative_prompt: negativePrompt
                         }
                     }
 
@@ -108,8 +129,10 @@ router.post("/pin/:id", async (req, res) => {
                     console.error("failed pining image");
                     return res.status(500);
                 }
+            } else if (status == "processing") {
+
             } else {
-                console.error("fetch image request failed");
+                console.error(`fetch image request failed with id ${imageId} and status ${status}`);
                 return res.status(500);
             }
         } else {
@@ -142,7 +165,10 @@ router.post("/generate", async (req, res) => {
     };
 
     try {
-        const response = await axios.post(process.env.TXT_2_IMG_ENDPOINT, requestBody);
+        const requestOptions = {
+            responseType: 'json'
+        }
+        const response = await axios.post(process.env.TXT_2_IMG_ENDPOINT, requestBody, requestOptions);
         res.json(response.data);
     } catch (e) {
         console.error(e);
