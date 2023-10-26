@@ -1,33 +1,75 @@
+/* Reset some default styles */
+body, h1, h2, h3, p, button, input {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+}
+
 .App {
-  text-align: center;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  height: 100vh;
+  background-color: #f7f8fc;
+  padding: 20px;
+}
+
+/* Input Styles */
+input {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 250px;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: #007BFF;
+}
+
+/* Button Styles */
+button {
+  cursor: pointer;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #007BFF;
   color: white;
+  margin-left: 10px;
+  transition: background-color 0.2s;
 }
 
-.App-link {
-  color: #61dafb;
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button:not(:disabled):hover {
+  background-color: #0056b3;
+}
+
+/* Image styles */
+img {
+  margin-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 512px;
+  max-height: 512px;
+}
+
+/* Flex container for input fields and button */
+div[style*="flex-direction: row"] {
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Flex container for each input field */
+div[style*="flex-direction: column"] {
+  margin-right: 20px;
 }

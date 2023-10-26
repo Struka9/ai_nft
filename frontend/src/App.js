@@ -3,7 +3,7 @@ import noImage from "./img/no-image.png";
 import './App.css';
 import { ethers, id } from "ethers";
 
-const API_ENDPOINT = "http://127.0.0.1:3001"; //process.env.API_ENDPOINT;
+const API_ENDPOINT = process.env.API_ENDPOINT;
 
 const abi = [
   "function mint(string memory _ipfsHash, bytes memory _signature)"
@@ -18,7 +18,7 @@ if (!window.ethereum) {
 } else {
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
-  contract = new ethers.Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", abi, signer);
+  contract = new ethers.Contract(DEPLOYED_CONTRACT_ADDRESS, abi, signer);
 }
 
 function App() {
@@ -70,9 +70,8 @@ function App() {
       console.log(`signature = ${signature}`);
       // Send the tx
       const receipt = await contract.mint(IpfsHash, signature);
-      console.log(`receipt => ${JSON.stringify(receipt)}`)
     } else {
-
+      alert(`couldn't get the image with id ${generated.id}`)
     }
   }
 
@@ -83,7 +82,7 @@ function App() {
           <input placeholder="Enter your prompt" onChange={(e) => setPrompt(e.target.value)} />
           <input placeholder="What things you don't want to see?" onChange={(e) => setNegativePrompt(e.target.value)} />
         </div>
-        <button onClick={handleGenerate}>Generate</button>
+        <button disabled={!prompt || prompt.trim() === ""} onClick={handleGenerate}>Generate</button>
       </div>
       <img width="512" height="512" alt="" src={!generated ? noImage : generated.image} />
       {generated.image && <button onClick={handleMint}>Mint NFT</button>}
