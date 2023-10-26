@@ -3,7 +3,7 @@ import noImage from "./img/no-image.png";
 import './App.css';
 import { ethers, id } from "ethers";
 
-const API_ENDPOINT = process.env.API_ENDPOINT;
+const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 const abi = [
   "function mint(string memory _ipfsHash, bytes memory _signature)"
@@ -18,7 +18,7 @@ if (!window.ethereum) {
 } else {
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
-  contract = new ethers.Contract(DEPLOYED_CONTRACT_ADDRESS, abi, signer);
+  contract = new ethers.Contract(process.env.REACT_APP_DEPLOYED_CONTRACT_ADDRESS, abi, signer);
 }
 
 function App() {
